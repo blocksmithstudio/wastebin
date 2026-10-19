@@ -9,6 +9,7 @@ pub(crate) struct Assets {
     pub favicon: Asset,
     pub css: Css,
     pub index_js: Asset,
+    pub detect_worker_js: Asset,
     pub paste_js: Asset,
     pub burn_js: Asset,
     pub password_toggle_js: Asset,
@@ -61,6 +62,11 @@ impl Assets {
                 "index",
                 Kind::Js,
                 include_bytes!("javascript/index.js").to_vec(),
+            ),
+            detect_worker_js: Asset::new(
+                "detect-worker",
+                Kind::Js,
+                include_bytes!("javascript/detect-worker.js").to_vec(),
             ),
             paste_js: Asset::new(
                 "paste",

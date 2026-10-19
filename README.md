@@ -2,6 +2,9 @@
 
 [![Rust](https://github.com/matze/wastebin/actions/workflows/rust.yml/badge.svg)](https://github.com/matze/wastebin/actions/workflows/rust.yml)
 
+> **Blocksmith fork:** automatic syntax detection with Wastebin's original design.
+> See [Blocksmith changes and deployment](BLOCKSMITH.md). Hosted at [paste.blocksmith.studio](https://paste.blocksmith.studio/).
+
 ## <strong><a href="https://war.ukraine.ua/support-ukraine/">support 🇺🇦</a> • <a href="https://commission.europa.eu/strategy-and-policy/state-union/state-union-2022/defending-eu-values">defend 🇪🇺</a></strong>
 
 A minimal pastebin with a design shamelessly copied from

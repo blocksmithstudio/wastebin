@@ -13,6 +13,7 @@
         <a href="/" class="nav-button" title="{{ lang.t("nav.home") }}" aria-label="{{ lang.t("nav.home") }}">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>
         </a>
+        <a class="nav-title" href="https://blocksmith.studio/">blocksmith<span class="nav-title-dim"> / paste</span></a>
       </div>
       <div class="nav-group">
         <button type="button" id="open" class="nav-button" title="{{ lang.t("nav.upload") }}" aria-label="{{ lang.t("nav.upload") }}">
@@ -87,10 +88,11 @@
         <section class="panel-section">
           <div class="panel-label">{{ lang.t("index.label.language") }}</div>
           <input type="search" id="filter" class="input-base lang-filter" placeholder="{{ lang.t("index.placeholder.filter") }}" autocomplete="off">
-          <select name="extension" id="langs" class="lang-select" size="12" aria-label="{{ lang.t("index.aria.language") }}">
+          <select name="extension" id="langs" class="lang-select" size="12" aria-label="{{ lang.t("index.aria.language") }}" data-detector="{{ page.assets.detect_worker_js.route() }}">
+          <option id="auto-language" value="txt" selected data-label="{{ lang.t("index.language.auto") }}" data-plain="{{ lang.t("index.language.plain") }}">{{ lang.t("index.language.auto") }}</option>
           {%- for syntax in highlighter.syntaxes() -%}
             {%- if let Some(extension) = syntax.extensions.first() %}
-            <option value="{{ extension }}">{{ syntax.name }}</option>
+            <option value="{{ extension }}" data-extensions="{{ syntax.extensions|join(",") }}">{{ syntax.name }}</option>
             {%- endif -%}
           {%- endfor %}
           </select>

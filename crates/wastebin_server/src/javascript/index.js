@@ -166,6 +166,85 @@ updateStats();
 
 const langSelect = $("langs");
 const langFilter = $("filter");
+const autoLanguage = $("auto-language");
+const form = $("form");
+let detector;
+let detectionId = 0;
+let requestedText;
+let detectedText;
+let detectionTimer;
+let detectionTimeout;
+let waitingToSave = false;
+
+function languageOption(extension) {
+  return Array.from(langSelect.options).find(opt => opt !== autoLanguage &&
+    (opt.dataset.extensions || "").split(",").includes(extension));
+}
+
+function applyDetection(extension) {
+  clearTimeout(detectionTimeout);
+  const option = languageOption(extension);
+  autoLanguage.value = option ? option.value : "txt";
+  autoLanguage.textContent = autoLanguage.dataset.label + " · " +
+    (option ? option.textContent : autoLanguage.dataset.plain);
+  detectedText = requestedText;
+  if (waitingToSave) {
+    waitingToSave = false;
+    form.requestSubmit();
+  }
+}
+
+function detectionFailed() {
+  if (detector) detector.terminate();
+  detector = null;
+  requestedText = textarea.value.slice(0, 16384);
+  applyDetection("txt");
+}
+
+function detectLanguage() {
+  if (!detector || !autoLanguage.selected) return;
+  const text = textarea.value.slice(0, 16384);
+  if (text === detectedText || text === requestedText) return;
+  requestedText = text;
+  detector.postMessage({ id: ++detectionId, text });
+  clearTimeout(detectionTimeout);
+  // A failed or slow worker must never stop someone saving their text.
+  detectionTimeout = setTimeout(detectionFailed, 2000);
+}
+
+try {
+  detector = new Worker(langSelect.dataset.detector);
+  detector.onmessage = function({ data }) {
+    if (data.id !== detectionId) return;
+    if (requestedText !== textarea.value.slice(0, 16384)) {
+      detectLanguage();
+      return;
+    }
+    applyDetection(data.extension);
+  };
+  detector.onerror = detectionFailed;
+} catch { detectionFailed(); }
+
+textarea.addEventListener("input", function() {
+  clearTimeout(detectionTimer);
+  detectionTimer = setTimeout(detectLanguage, 250);
+});
+langSelect.addEventListener("change", function() {
+  if (waitingToSave && !autoLanguage.selected) {
+    waitingToSave = false;
+    form.requestSubmit();
+  } else {
+    detectLanguage();
+  }
+});
+form.addEventListener("submit", function(e) {
+  if (detector && autoLanguage.selected && detectedText !== textarea.value.slice(0, 16384)) {
+    e.preventDefault();
+    waitingToSave = true;
+    clearTimeout(detectionTimer);
+    detectLanguage();
+  }
+});
 
 langFilter.addEventListener("input", function() {
   const term = langFilter.value.toLowerCase();
@@ -240,23 +319,21 @@ function loadFile(file) {
     updateLineNumbers();
     updateStats();
 
-    // Infer extension from filename
+    // A filename takes priority; otherwise detect the file's content.
+    autoLanguage.selected = true;
     const name = file.name || "";
     const dot = name.lastIndexOf(".");
     if (dot > 0) {
       const ext = name.slice(dot + 1).toLowerCase();
-      for (let i = 0; i < langSelect.options.length; i++) {
-        if (langSelect.options[i].value === ext) {
-          langSelect.options[i].selected = true;
-          break;
-        }
-      }
+      const option = languageOption(ext);
+      if (option) option.selected = true;
       langFilter.value = "";
       langFilter.dispatchEvent(new Event("input"));
     }
 
     // Set title to filename
     $("title").value = file.name;
+    detectLanguage();
   });
 }
 
@@ -303,13 +380,13 @@ function removeIndent() {
 textarea.addEventListener("keydown", function(e) {
   if ((e.ctrlKey || e.metaKey) && e.key === "s") {
     e.preventDefault();
-    $("form").submit();
+    form.requestSubmit();
     return;
   }
 
   if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
     e.preventDefault();
-    $("form").submit();
+    form.requestSubmit();
     return;
   }
 

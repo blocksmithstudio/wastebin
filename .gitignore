@@ -1,2 +1,4 @@
 /target
 .idea
+/.build/
+/node_modules/

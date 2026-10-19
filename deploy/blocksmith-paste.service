@@ -1,0 +1,34 @@
+[Unit]
+Description=Blocksmith Paste (Wastebin)
+After=network.target
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=blocksmith-paste
+Group=blocksmith-paste
+WorkingDirectory=/opt/blocksmith/projects/local/paste-deployment
+EnvironmentFile=/opt/blocksmith/projects/local/paste-deployment/paste.env
+ExecStart=/opt/blocksmith/projects/local/paste-deployment/bin/wastebin
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/blocksmith/projects/local/paste-deployment/data
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+CapabilityBoundingSet=
+LockPersonality=true
+RestrictSUIDSGID=true
+MemoryHigh=192M
+MemoryMax=256M
+MemorySwapMax=64M
+TasksMax=64
+CPUQuota=100%
+
+[Install]
+WantedBy=multi-user.target

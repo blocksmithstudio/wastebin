@@ -4,14 +4,7 @@ permissions:
   contents: read
 
 on:
-  push:
-    branches:
-      - master
-    paths:
-      - '.github/workflows/theme-showcase.yml'
-      - 'crates/wastebin_theme_showcase/**'
-      - 'crates/wastebin_highlight/**'
-      - 'crates/wastebin_server/src/style.css'
+  workflow_dispatch:
 
 jobs:
   build:

@@ -9,6 +9,20 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  syntax-detection:
+    name: Syntax detection
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm test
+      - run: npm run build
+      - run: git diff --exit-code -- crates/wastebin_server/src/javascript/detect-worker.js
+
   test:
     name: Test and lint
     runs-on: ubuntu-latest

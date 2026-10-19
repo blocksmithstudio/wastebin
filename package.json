@@ -1,0 +1,17 @@
+{
+  "name": "blocksmith-paste-detection",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node frontend/build.js",
+    "test": "node --test frontend/detect.test.js",
+    "test:browser": "node frontend/browser.test.js"
+  },
+  "dependencies": {
+    "highlight.js": "11.12.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2",
+    "playwright": "1.64.1"
+  }
+}

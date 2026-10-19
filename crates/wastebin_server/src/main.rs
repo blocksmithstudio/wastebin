@@ -187,6 +187,7 @@ fn make_app(state: AppState, timeout: Duration, max_body_size: usize) -> Router 
         &state.page.assets.css.light,
         &state.page.assets.css.no_js,
         &state.page.assets.index_js,
+        &state.page.assets.detect_worker_js,
         &state.page.assets.paste_js,
         &state.page.assets.burn_js,
         &state.page.assets.password_toggle_js,

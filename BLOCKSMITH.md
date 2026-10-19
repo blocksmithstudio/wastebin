@@ -15,16 +15,15 @@ signature resolves a common Java/C#/TypeScript tie. Low scores and ambiguous
 results fall back to plain text. Detection is best-effort, especially for short
 snippets and mixed server logs.
 
-Auto-detect is selected initially. Users can choose any supported language or
-plain text instead; manual choices always win. Opening a file uses its extension
-when recognized, otherwise its content is detected. Saving waits for the latest
-detection, including Ctrl+S and Ctrl+Enter. If the worker fails or takes longer
-than two seconds, saving continues as plain text. Without JavaScript, manual
-language selection and saving still work.
+Syntax is detected automatically without a language selector. Saving waits for
+the latest detection, including Ctrl+S and Ctrl+Enter. If the worker fails or
+takes longer than two seconds, saving continues as plain text. Without
+JavaScript, saving uses plain text. File selection and drag-and-drop imports
+are not supported.
 
 The selected extension is submitted with the original text and rendered using
-Wastebin's existing Syntect themes. The JSON API is unchanged: API callers supply
-`extension` themselves. Password-protected pastes still use Wastebin's server-side
+Wastebin's existing Syntect themes. JSON API callers supply `extension`
+themselves. Password-protected pastes still use Wastebin's server-side
 encryption; this change does not add end-to-end encryption.
 
 ## Development
@@ -47,12 +46,13 @@ change. Third-party license text is retained in that file.
 Browser verification against a disposable/local database:
 
 ```sh
-PASTE_BASE_URL=http://127.0.0.1:8088 node frontend/browser.test.js
+PASTE_BASE_URL=http://127.0.0.1:18088 node frontend/browser.test.js
 ```
 
 Set `CHROMIUM_PATH` to reuse an installed Chromium; otherwise install Playwright's
 Chromium using `npx playwright install chromium`. Screenshots and results default
-to `.build/verification/`. The test creates synthetic pastes and deletes them.
+to `.build/verification/`. Use a disposable database: the test creates synthetic
+pastes that expire automatically. Manual deletion is deliberately unavailable.
 
 ## VPS deployment
 
@@ -62,8 +62,12 @@ and an online SQLite backup helper. Deployment records live in
 
 The service binds to `127.0.0.1:8088`, behind Nginx HTTPS. Nginx limits writes to
 10/minute per address (burst 10), reads to 10/second (burst 40), and request bodies
-to 2 MiB. UI pastes expire after seven days by default, with one-hour, one-day,
-seven-day and 30-day choices. As upstream, API clients may omit expiration.
+to 2 MiB. New website and API pastes expire after one day by default. The website
+offers one-hour, one-day, seven-day and 30-day choices. Omitted API/form expiration
+uses 86,400 seconds; explicit positive timers remain supported. Existing paste
+expirations are preserved. Manual deletion is disabled, including both former
+web and API endpoints. Legacy owner tokens remain in API responses for client
+compatibility but do not grant deletion rights.
 The application has no accounts or general web admin panel.
 
 Do not commit live environment files, signing keys, password salts, or paste data.

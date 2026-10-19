@@ -19,13 +19,6 @@
 
 {% block nav_actions %}
   {% if is_available %}
-    {% if can_delete %}
-    <form method="POST" action="/delete/{{ key.id() }}" class="contents">
-      <button type="submit" class="nav-button nav-button-danger" title="{{ lang.t("nav.delete") }}" aria-label="{{ lang.t("nav.delete") }}">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
-      </button>
-    </form>
-    {% endif %}
     <a href="/dl/{{ key }}" class="nav-button" title="{{ lang.t("nav.download") }}" aria-label="{{ lang.t("nav.download") }}">
       <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
     </a>

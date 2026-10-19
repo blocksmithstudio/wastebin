@@ -33,7 +33,7 @@ use crate::assets::Asset;
 use crate::cache::Cache;
 use crate::errors::Error;
 use crate::handlers::extract::Theme;
-use crate::handlers::{delete, download, html, insert, raw, robots, theme};
+use crate::handlers::{download, html, insert, raw, robots, theme};
 use crate::i18n::Lang;
 use wastebin_core::db::Database;
 
@@ -209,15 +209,9 @@ fn make_app(state: AppState, timeout: Duration, max_body_size: usize) -> Router 
             get(html::rendered::get).post(html::rendered::get),
         )
         .route("/burn/{id}", get(html::burn::get))
-        .route(
-            "/{id}",
-            get(html::paste::get)
-                .post(html::paste::get)
-                .delete(delete::api::delete),
-        )
+        .route("/{id}", get(html::paste::get).post(html::paste::get))
         .route("/dl/{id}", get(download::get))
         .route("/raw/{id}", get(raw::get))
-        .route("/delete/{id}", post(delete::form::delete))
         .layer(
             ServiceBuilder::new()
                 .layer(DefaultBodyLimit::max(max_body_size))

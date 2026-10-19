@@ -75,13 +75,6 @@ impl Cache {
     }
 }
 
-impl Key {
-    /// Make a copy of the owned id.
-    pub fn id(&self) -> String {
-        self.id.to_string()
-    }
-}
-
 impl Display for Key {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if let Some(ext) = &self.ext {
@@ -112,12 +105,12 @@ mod tests {
     #[test]
     fn cache_key() {
         let key = Key::from_str("bJZCna").unwrap();
-        assert_eq!(key.id(), "bJZCna");
+        assert_eq!(key.to_string(), "bJZCna");
         assert_eq!(key.id, Id::from(104_651_828_u32));
         assert_eq!(key.ext, None);
 
         let key = Key::from_str("sIiFec.rs").unwrap();
-        assert_eq!(key.id(), "sIiFec");
+        assert_eq!(key.to_string(), "sIiFec.rs");
         assert_eq!(key.id, 1_243_750_162_u32.into());
         assert_eq!(key.ext.unwrap(), "rs");
 

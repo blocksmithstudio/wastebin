@@ -52,7 +52,7 @@ to released versions here:
 * comes with [nine color themes](https://matze.github.io/wastebin/) in light and
   dark mode
 * encrypts entries using ChaCha20Poly1305 and argon2 hashed passwords
-* allows deletion after expiration, after reading or by anonymous owners
+* automatically deletes pastes after expiration or after reading
 * shows QR code to browse a paste's URL on mobile devices
 * translated into Chinese and German
 
@@ -208,8 +208,8 @@ run-time behavior:
 | `WASTEBIN_HTTP_TIMEOUT`           | Maximum number of seconds a request is processed until wastebin responds with 408. | `5` |
 | `WASTEBIN_MAX_BODY_SIZE`          | Number of bytes to accept for POST requests.                  | `1048576`, i.e. 1 MB  |
 | `WASTEBIN_PASSWORD_SALT`          | Salt used to hash user passwords used for encrypting pastes.  | `somesalt`            |
-| `WASTEBIN_PASTE_EXPIRATIONS`      | Possible paste expirations as a comma-separated list of seconds or values with duration magnitudes (`s`, `m`, `h`, `d`, `M`, `y` for seconds, minutes, hours, days, months and years respectively). Appending `=d` to one of the value makes it the default selection. | see [here](https://github.com/matze/wastebin/blob/eb61c78506a165605f145e8374ed64822405eda0/crates/wastebin_server/src/env.rs#L166) |
-| `WASTEBIN_SIGNING_KEY`            | Key to sign cookies. Must be at least 64 bytes long.          | Random key generated at startup, i.e. cookies will become invalid after restarts and paste creators will not be able to delete their pastes. |
+| `WASTEBIN_PASTE_EXPIRATIONS`      | Possible paste expirations as a comma-separated list of seconds or values with duration magnitudes (`s`, `m`, `h`, `d`, `M`, `y` for seconds, minutes, hours, days, months and years respectively). Appending `=d` to one of the value makes it the default selection. | `1h,1d=d,7d,30d` |
+| `WASTEBIN_SIGNING_KEY`            | Key to sign legacy ownership cookies. Must be at least 64 bytes long. | Random key generated at startup; cookies become invalid after restarts. Manual deletion is disabled. |
 | `WASTEBIN_THEME`                  | Theme colors, one of `ayu`, `base16ocean`, `catppuccin`, `coldark`, `gruvbox`, `monokai`, `onehalf`, `rosepine`, `solarized`. See [this page](https://matze.github.io/wastebin/) for a preview. | `ayu` |
 | `WASTEBIN_TITLE`                  | HTML page title. Pastes with their own title use that title instead. | `wastebin`            |
 | `WASTEBIN_UNIX_SOCKET_PATH`       | Path to a Unix socket to accept connections from.             |                       |
@@ -237,7 +237,7 @@ POST a new paste to the `/` endpoint with the following JSON payload:
 ```
 
 After successful insertion, you will receive a JSON response with the path to
-the newly created paste and a signed `owner` token authorizing deletion:
+the newly created paste and a legacy signed `owner` token:
 
 ```json
 {"path":"/Ibv9Fa.rs","owner":"<signed token>"}
@@ -246,18 +246,15 @@ the newly created paste and a signed `owner` token authorizing deletion:
 By default every insert gets its own owner identity. Passing the `owner` token
 of a previous insert back in the `owner` field makes the new paste reuse that
 identity, letting a client group several pastes under a single owner. An absent
-or invalid token mints a fresh identity. Note that a reused token is a shared
-credential: whoever holds it can delete every paste created under it.
+or invalid token mints a fresh identity. Owner tokens are retained for client
+compatibility and do not grant deletion rights. Omitted or null `expires`
+defaults to 86,400 seconds (one day); explicit positive timers are supported.
 
 To retrieve the raw content, make a GET request on the `/raw/:id` route. In case
 the paste was encrypted, pass the password via the `wastebin-password` header.
 
-To delete a paste, make a DELETE request on the `/:id` route with the `uid`
-cookie set. A browser obtains that cookie by opening `/<id>?owner=<token>` with
-the `owner` token from the insert response: the server validates the token,
-appends the uid to the signed `uid` cookie and redirects to the clean paste URL.
-The form-based UI sets the same cookie in the `Set-Cookie` header of the
-redirect response after creation.
+Manual deletion is disabled for creators and visitors. The former `DELETE /:id`
+and `POST /delete/:id` endpoints are unavailable. Pastes expire automatically.
 
 ### wastebin-ctl command line tool
 

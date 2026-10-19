@@ -19,7 +19,7 @@ pub(crate) struct Entry {
     pub title: Option<String>,
     /// Optional server-signed owner token from a previous insert. When present
     /// and valid, the new paste reuses that token's uid instead of minting a
-    /// new one, so all of a client's pastes share a single deletion identity.
+    /// new one, so all of a client's pastes share a single identity.
     #[serde(default)]
     pub owner: Option<String>,
 }
@@ -27,8 +27,7 @@ pub(crate) struct Entry {
 #[derive(Deserialize, Serialize)]
 pub(crate) struct RedirectResponse {
     pub path: String,
-    /// Signed token claimed by visiting `<path>?owner=<token>`. Granting any
-    /// browser that opens that URL the right to delete the paste.
+    /// Legacy owner token retained for client compatibility. Manual deletion is disabled.
     pub owner: String,
 }
 
@@ -40,7 +39,7 @@ impl From<Entry> for write::Entry {
         Self {
             text: entry.text,
             extension: entry.extension,
-            expires: entry.expires,
+            expires: entry.expires.or(NonZeroU32::new(86_400)),
             burn_after_reading: entry.burn_after_reading,
             uid: None,
             password,
@@ -85,6 +84,17 @@ mod tests {
     use wastebin_core::db::write::Entry;
 
     #[test]
+    fn expiration_defaults_to_one_day_and_preserves_explicit_timers() {
+        for (expires, expected) in [(None, 86_400), (std::num::NonZeroU32::new(3600), 3600)] {
+            let entry = Entry::from(super::Entry {
+                expires,
+                ..Default::default()
+            });
+            assert_eq!(entry.expires.unwrap().get(), expected);
+        }
+    }
+
+    #[test]
     fn empty_password_is_none() -> Result<(), Box<dyn std::error::Error>> {
         let data = r#"{"text": "foo", "password": ""}"#;
         let entry: super::Entry = serde_json::from_str(data)?;
@@ -110,6 +120,21 @@ mod tests {
 
         let res = client.get(&format!("/raw{}", payload.path)).send().await?;
         assert_eq!(res.status(), StatusCode::OK);
+        assert_eq!(res.text().await?, "FooBarBaz");
+
+        assert_eq!(
+            client.delete(&payload.path).send().await?.status(),
+            StatusCode::METHOD_NOT_ALLOWED
+        );
+        assert_eq!(
+            client
+                .post(&format!("/delete{}", payload.path))
+                .send()
+                .await?
+                .status(),
+            StatusCode::NOT_FOUND
+        );
+        let res = client.get(&format!("/raw{}", payload.path)).send().await?;
         assert_eq!(res.text().await?, "FooBarBaz");
 
         Ok(())
@@ -178,7 +203,7 @@ mod tests {
         // Same uid yields the same (deterministic) signed token.
         assert_eq!(first.owner, second.owner);
 
-        // A single handoff claims the shared uid; both pastes become deletable.
+        // Even a shared owner identity cannot enable manual deletion.
         client
             .get(&first.path)
             .query(&[("owner", &first.owner)])
@@ -187,11 +212,11 @@ mod tests {
 
         assert_eq!(
             client.delete(&first.path).send().await?.status(),
-            StatusCode::OK
+            StatusCode::METHOD_NOT_ALLOWED
         );
         assert_eq!(
             client.delete(&second.path).send().await?.status(),
-            StatusCode::OK
+            StatusCode::METHOD_NOT_ALLOWED
         );
 
         Ok(())
@@ -221,7 +246,8 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn delete_via_owner_handoff() -> Result<(), Box<dyn std::error::Error>> {
+    async fn owner_handoff_cannot_enable_manual_deletion() -> Result<(), Box<dyn std::error::Error>>
+    {
         // Browser-like client, keeps cookies across requests so the handoff cookie sticks for the
         // subsequent DELETE.
         let client = Client::new(StoreCookies(true)).await;
@@ -250,12 +276,18 @@ mod tests {
             "expected uid Set-Cookie on handoff",
         );
 
-        // Cookie now in the jar, DELETE should succeed.
+        // An owner cookie cannot enable deletion through either former endpoint.
         let res = client.delete(&payload.path).send().await?;
-        assert_eq!(res.status(), StatusCode::OK);
+        assert_eq!(res.status(), StatusCode::METHOD_NOT_ALLOWED);
+        let res = client
+            .post(&format!("/delete{}", payload.path))
+            .send()
+            .await?;
+        assert_eq!(res.status(), StatusCode::NOT_FOUND);
 
         let res = client.get(&payload.path).send().await?;
-        assert_eq!(res.status(), StatusCode::NOT_FOUND);
+        assert_eq!(res.status(), StatusCode::OK);
+        assert!(!res.text().await?.contains("/delete/"));
 
         Ok(())
     }

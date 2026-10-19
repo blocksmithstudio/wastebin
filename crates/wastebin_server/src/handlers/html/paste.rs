@@ -44,7 +44,6 @@ pub(crate) struct Paste {
     key: Key,
     theme: Option<Theme>,
     lang: Lang,
-    can_delete: bool,
     /// If the paste still in the database and can be fetched with another request.
     is_available: bool,
     /// Expiration in case it was set.
@@ -134,16 +133,8 @@ pub async fn get<E>(
 
         let Data { text, metadata } = data;
         let Metadata {
-            uid: owner_uid,
-            title,
-            expiration,
-            ..
+            title, expiration, ..
         } = metadata;
-
-        let can_delete = match (uids, owner_uid) {
-            (Some(Uids(uids)), Some(owner_uid)) => uids.contains(&owner_uid),
-            _ => false,
-        };
 
         let html = if let Some(html) = cache.get(&key, Mode::Source) {
             tracing::trace!(?key, "found cached item");
@@ -168,7 +159,6 @@ pub async fn get<E>(
             key,
             theme: theme.clone(),
             lang,
-            can_delete,
             is_available,
             expiration,
             html,

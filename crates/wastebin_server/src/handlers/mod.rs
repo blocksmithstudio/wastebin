@@ -1,4 +1,3 @@
-pub mod delete;
 pub mod download;
 pub mod extract;
 pub mod html;

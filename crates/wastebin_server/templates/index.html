@@ -16,9 +16,6 @@
         <a class="nav-title" href="https://blocksmith.studio/">blocksmith<span class="nav-title-dim"> / paste</span></a>
       </div>
       <div class="nav-group">
-        <button type="button" id="open" class="nav-button" title="{{ lang.t("nav.upload") }}" aria-label="{{ lang.t("nav.upload") }}">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>
-        </button>
         <div class="theme-switcher">
           {% match theme %}
             {% when None %}
@@ -70,12 +67,6 @@
         <div class="editor" id="editor-wrap">
           <div id="line-numbers" aria-hidden="true"></div>
           <textarea id="text" name="text" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" placeholder="{{ lang.t("index.placeholder.paste") }}" autofocus required></textarea>
-          <div class="drop-overlay" id="drop-overlay">
-            <div>
-              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>
-              <div class="drop-overlay-text">{{ lang.t("index.drop") }}</div>
-            </div>
-          </div>
         </div>
       </main>
 
@@ -85,18 +76,7 @@
           <input type="text" name="title" id="title" class="input-base" placeholder="{{ lang.t("index.placeholder.title") }}">
         </section>
 
-        <section class="panel-section">
-          <div class="panel-label">{{ lang.t("index.label.language") }}</div>
-          <input type="search" id="filter" class="input-base lang-filter" placeholder="{{ lang.t("index.placeholder.filter") }}" autocomplete="off">
-          <select name="extension" id="langs" class="lang-select" size="12" aria-label="{{ lang.t("index.aria.language") }}" data-detector="{{ page.assets.detect_worker_js.route() }}">
-          <option id="auto-language" value="txt" selected data-label="{{ lang.t("index.language.auto") }}" data-plain="{{ lang.t("index.language.plain") }}">{{ lang.t("index.language.auto") }}</option>
-          {%- for syntax in highlighter.syntaxes() -%}
-            {%- if let Some(extension) = syntax.extensions.first() %}
-            <option value="{{ extension }}" data-extensions="{{ syntax.extensions|join(",") }}">{{ syntax.name }}</option>
-            {%- endif -%}
-          {%- endfor %}
-          </select>
-        </section>
+        <input type="hidden" name="extension" id="extension" value="txt" data-detector="{{ page.assets.detect_worker_js.route() }}">
 
         <section class="panel-section">
           <div class="panel-label">{{ lang.t("index.label.expires") }}</div>

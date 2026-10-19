@@ -108,15 +108,6 @@ header {
   stroke-width: 1.5;
 }
 
-.nav-button-danger {
-  color: var(--danger);
-}
-
-.nav-button-danger:hover {
-  background: var(--danger-bg);
-  color: var(--danger);
-}
-
 .nav-title {
   font-family: var(--font-mono);
   font-size: 0.975rem;
@@ -244,28 +235,6 @@ header {
 .contents { display: contents; }
 .toggle-gap { height: 8px; }
 
-.drop-overlay {
-  position: absolute;
-  inset: 0;
-  display: none;
-  place-items: center;
-  background: var(--accent-bg);
-  border: 2px dashed var(--accent);
-  pointer-events: none;
-  color: var(--accent-fg);
-  font-family: var(--font-mono);
-  font-size: var(--fs-base);
-  z-index: 50;
-}
-
-.drop-overlay.active {
-  display: grid;
-}
-
-.drop-overlay-text {
-  margin-top: 8px;
-}
-
 .input-base {
   width: 100%;
   background: var(--panel-bg2);
@@ -285,42 +254,6 @@ header {
 
 .input-base::placeholder {
   color: var(--fg-muted);
-}
-
-.lang-filter {
-  margin-bottom: 6px;
-}
-
-.lang-select {
-  width: 100%;
-  font-family: var(--font-mono);
-  font-size: var(--fs-sm);
-  background: var(--panel-bg2);
-  border: 1px solid var(--border-soft);
-  color: var(--fg);
-  border-radius: 3px;
-  outline: none;
-  padding: 2px 0;
-  transition: border-color 120ms;
-}
-
-.lang-select:focus {
-  border-color: var(--accent);
-}
-
-.lang-select option {
-  padding: 3px 10px;
-  background: var(--panel-bg2);
-  color: var(--fg);
-}
-
-.lang-select option:checked {
-  background: var(--accent-bg);
-  color: var(--accent-fg);
-}
-
-.lang-select option:hover {
-  background: var(--panel-bg);
 }
 
 .expiry-list {

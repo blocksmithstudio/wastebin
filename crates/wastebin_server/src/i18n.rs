@@ -84,7 +84,7 @@ static EN: phf::Map<&'static str, &'static str> = phf_map! {
     "theme.light" => "light mode",
     "theme.auto" => "auto mode",
 
-    "index.placeholder.paste" => "paste, type, or drop a file here …",
+    "index.placeholder.paste" => "paste or type here …",
     "index.drop" => "drop to load file",
     "index.label.title" => "title",
     "index.placeholder.title" => "untitled",
@@ -176,7 +176,7 @@ static DE: phf::Map<&'static str, &'static str> = phf_map! {
     "theme.light" => "Heller Modus",
     "theme.auto" => "Automatisch",
 
-    "index.placeholder.paste" => "Text einfügen, tippen oder Datei hierher ziehen …",
+    "index.placeholder.paste" => "Text einfügen oder tippen …",
     "index.drop" => "Datei hier ablegen",
     "index.label.title" => "Titel",
     "index.placeholder.title" => "ohne Titel",
@@ -268,7 +268,7 @@ static ZH: phf::Map<&'static str, &'static str> = phf_map! {
     "theme.light" => "浅色模式",
     "theme.auto" => "自动模式",
 
-    "index.placeholder.paste" => "在此处粘贴、输入或拖放文件…",
+    "index.placeholder.paste" => "在此处粘贴或输入…",
     "index.drop" => "拖放以加载文件",
     "index.label.title" => "标题",
     "index.placeholder.title" => "无标题",

@@ -164,9 +164,7 @@ function updateStats() {
 textarea.addEventListener("input", updateStats);
 updateStats();
 
-const langSelect = $("langs");
-const langFilter = $("filter");
-const autoLanguage = $("auto-language");
+const extensionInput = $("extension");
 const form = $("form");
 let detector;
 let detectionId = 0;
@@ -176,17 +174,9 @@ let detectionTimer;
 let detectionTimeout;
 let waitingToSave = false;
 
-function languageOption(extension) {
-  return Array.from(langSelect.options).find(opt => opt !== autoLanguage &&
-    (opt.dataset.extensions || "").split(",").includes(extension));
-}
-
 function applyDetection(extension) {
   clearTimeout(detectionTimeout);
-  const option = languageOption(extension);
-  autoLanguage.value = option ? option.value : "txt";
-  autoLanguage.textContent = autoLanguage.dataset.label + " · " +
-    (option ? option.textContent : autoLanguage.dataset.plain);
+  extensionInput.value = extension;
   detectedText = requestedText;
   if (waitingToSave) {
     waitingToSave = false;
@@ -202,7 +192,7 @@ function detectionFailed() {
 }
 
 function detectLanguage() {
-  if (!detector || !autoLanguage.selected) return;
+  if (!detector) return;
   const text = textarea.value.slice(0, 16384);
   if (text === detectedText || text === requestedText) return;
   requestedText = text;
@@ -213,7 +203,7 @@ function detectLanguage() {
 }
 
 try {
-  detector = new Worker(langSelect.dataset.detector);
+  detector = new Worker(extensionInput.dataset.detector);
   detector.onmessage = function({ data }) {
     if (data.id !== detectionId) return;
     if (requestedText !== textarea.value.slice(0, 16384)) {
@@ -229,16 +219,8 @@ textarea.addEventListener("input", function() {
   clearTimeout(detectionTimer);
   detectionTimer = setTimeout(detectLanguage, 250);
 });
-langSelect.addEventListener("change", function() {
-  if (waitingToSave && !autoLanguage.selected) {
-    waitingToSave = false;
-    form.requestSubmit();
-  } else {
-    detectLanguage();
-  }
-});
 form.addEventListener("submit", function(e) {
-  if (detector && autoLanguage.selected && detectedText !== textarea.value.slice(0, 16384)) {
+  if (detector && detectedText !== textarea.value.slice(0, 16384)) {
     e.preventDefault();
     waitingToSave = true;
     clearTimeout(detectionTimer);
@@ -246,14 +228,6 @@ form.addEventListener("submit", function(e) {
   }
 });
 
-langFilter.addEventListener("input", function() {
-  const term = langFilter.value.toLowerCase();
-  for (const opt of langSelect.options) {
-    const name = opt.text.toLowerCase();
-    const ext = opt.value.toLowerCase();
-    opt.hidden = !(name.includes(term) || ext.includes(term));
-  }
-});
 
 const encryptToggle = $("encrypt-toggle");
 const passwordGroup = $("password-group");
@@ -276,75 +250,6 @@ $("burn-after-reading").addEventListener("change", function() {
   for (const radio of radios) {
     radio.disabled = disabled;
   }
-});
-
-const overlay = $("drop-overlay");
-let dragCounter = 0;
-
-const editorWrap = $("editor-wrap");
-
-editorWrap.addEventListener("dragenter", function(e) {
-  e.preventDefault();
-  dragCounter++;
-  overlay.classList.add("active");
-});
-
-editorWrap.addEventListener("dragleave", function(e) {
-  e.preventDefault();
-  dragCounter--;
-  if (dragCounter <= 0) {
-    dragCounter = 0;
-    overlay.classList.remove("active");
-  }
-});
-
-editorWrap.addEventListener("dragover", function(e) {
-  e.preventDefault();
-});
-
-editorWrap.addEventListener("drop", function(e) {
-  e.preventDefault();
-  dragCounter = 0;
-  overlay.classList.remove("active");
-
-  const files = e.dataTransfer && e.dataTransfer.files;
-  if (files && files.length > 0) {
-    loadFile(files[0]);
-  }
-});
-
-function loadFile(file) {
-  file.text().then(function(value) {
-    textarea.value = value.replace(/\n$/, "");
-    updateLineNumbers();
-    updateStats();
-
-    // A filename takes priority; otherwise detect the file's content.
-    autoLanguage.selected = true;
-    const name = file.name || "";
-    const dot = name.lastIndexOf(".");
-    if (dot > 0) {
-      const ext = name.slice(dot + 1).toLowerCase();
-      const option = languageOption(ext);
-      if (option) option.selected = true;
-      langFilter.value = "";
-      langFilter.dispatchEvent(new Event("input"));
-    }
-
-    // Set title to filename
-    $("title").value = file.name;
-    detectLanguage();
-  });
-}
-
-$("open").addEventListener("click", function() {
-  const input = document.createElement("input");
-  input.type = "file";
-  input.onchange = function(e) {
-    const file = e.target.files[0];
-    if (file) loadFile(file);
-  };
-  input.click();
 });
 
 const INDENT = "    ";

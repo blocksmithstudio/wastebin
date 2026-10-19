@@ -30,7 +30,8 @@ impl From<Entry> for write::Entry {
         let title = (!entry.title.is_empty()).then_some(entry.title);
         let expires = entry
             .expires
-            .and_then(|expires| expires.parse::<NonZeroU32>().ok());
+            .and_then(|expires| expires.parse::<NonZeroU32>().ok())
+            .or(NonZeroU32::new(86_400));
 
         Self {
             text: entry.text,
@@ -98,6 +99,17 @@ mod tests {
     use crate::test_helpers::{Client, StoreCookies};
     use reqwest::{StatusCode, header};
     use std::collections::HashMap;
+
+    #[test]
+    fn expiration_defaults_to_one_day_and_preserves_explicit_timers() {
+        for (expires, expected) in [(None, 86_400), (Some("0"), 86_400), (Some("3600"), 3600)] {
+            let entry = write::Entry::from(Entry {
+                expires: expires.map(String::from),
+                ..Default::default()
+            });
+            assert_eq!(entry.expires.unwrap().get(), expected);
+        }
+    }
 
     #[tokio::test]
     async fn insert() -> Result<(), Box<dyn std::error::Error>> {

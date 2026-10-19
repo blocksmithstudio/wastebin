@@ -5,7 +5,7 @@ use axum::response::{IntoResponse, Response};
 
 use crate::cache::{Key, Mode};
 use crate::handlers::NoStore;
-use crate::handlers::extract::{Theme, Uids};
+use crate::handlers::extract::Theme;
 use crate::handlers::html::paste::PasteForm;
 use crate::handlers::html::{
     BurnConfirmation, ErrorResponse, FormAction, PasswordInput, make_error,
@@ -26,7 +26,6 @@ pub(crate) struct Rendered {
     key: Key,
     theme: Option<Theme>,
     lang: Lang,
-    can_delete: bool,
     is_available: bool,
     /// Always `true` for this view; needed by the inherited paste template.
     is_markdown: bool,
@@ -42,7 +41,6 @@ pub async fn get<E>(
     State(db): State<Database>,
     State(highlighter): State<Highlighter>,
     Path(id): Path<String>,
-    uids: Option<Uids>,
     theme: Option<Theme>,
     lang: Lang,
     form: Result<Form<PasteForm>, E>,
@@ -92,16 +90,8 @@ pub async fn get<E>(
 
         let Data { text, metadata } = data;
         let Metadata {
-            uid: owner_uid,
-            title,
-            expiration,
-            ..
+            title, expiration, ..
         } = metadata;
-
-        let can_delete = match (uids, owner_uid) {
-            (Some(Uids(uids)), Some(owner_uid)) => uids.contains(&owner_uid),
-            _ => false,
-        };
 
         let html = if let Some(cached) = cache.get(&key, Mode::Rendered) {
             tracing::trace!(?key, "found cached rendered markdown");
@@ -125,7 +115,6 @@ pub async fn get<E>(
             key,
             theme: theme.clone(),
             lang,
-            can_delete,
             is_available,
             is_markdown: true,
             expiration,
